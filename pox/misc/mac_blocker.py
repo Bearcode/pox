@@ -25,7 +25,7 @@ Start with --no-clear-tables if you don't want to clear tables on changes.
 
 from pox.core import core
 from pox.lib.revent import EventHalt 
-from pox.lib.addresses import EthAddr
+from pox.lib.addresses import EthAddr, IPAddr
 import pox.openflow.libopenflow_01 as of
 
 from Tkinter import *
@@ -33,10 +33,14 @@ from Tkinter import *
 # Sets of blocked and unblocked MACs
 blocked = set()
 unblocked = set()
+ip_blocked = set()
+ip_unblocked = set()
 
 # Listbox widgets
 unblocked_list = None
 blocked_list = None
+ip_unblocked_list = None
+ip_blocked_list = None
 
 # If True, clear tables on every block/unblock
 clear_tables_on_change = True
@@ -48,16 +52,33 @@ def add_mac (mac):
   if mac in unblocked: return
   unblocked.add(mac)
   core.tk.do(unblocked_list.insert, None, END, str(mac))
+
+def add_ip(ip):
+  if ip in ip_blocked: return
+  if ip in ip_unblocked: return
+  ip_unblocked.add(ip)
+  core.tk.do(ip_unblocked_list.insert, None, END, str(ip))
+
   
 def packet_handler (event):
   # Note the two MACs
   add_mac(event.parsed.src)
   add_mac(event.parsed.dst)
+  ip = event.parsed.find('ipv4')
+  if ip is None:
+    # This packet isn't IP!
+    return
+  add_ip(ip.srcip)
+  add_ip(ip.dstip)
 
   # Check for blocked MACs
   if event.parsed.src in blocked:
     return EventHalt
   if event.parsed.dst in blocked:
+    return EventHalt
+  if ip.srcip in ip_blocked:
+    return EventHalt
+  if ip.dstip in ip_blocked:
     return EventHalt
 
 def get (l):
@@ -78,13 +99,24 @@ def clear_flows ():
 
 def move_entry (from_list, from_set, to_list, to_set):
   """ Move entry from one list to another """
-  i,mac = get(from_list)
-  if mac is None: return
+  i,item = get(from_list)
+  if item is None: return
   from_list.delete(i)
-  to_list.insert(END, mac)
-  mac = EthAddr(mac)
-  to_set.add(mac)
-  from_set.remove(mac)
+  to_list.insert(END, item)
+  item_obj = None
+  try:
+    mac = EthAddr(item)
+    item_obj = mac
+  except Exception as e:
+    pass
+  try:
+    ip = IPAddr(item)
+    item_obj = ip
+  except Exception as e:
+    pass
+  if item_obj:
+    to_set.add(item_obj)
+    from_set.remove(item_obj)
 
   if clear_tables_on_change:
     # This is coming from another thread, so don't just send -- use
@@ -99,9 +131,18 @@ def do_unblock ():
   """ Handle clicks on unblock button """
   move_entry(blocked_list, blocked, unblocked_list, unblocked)
 
+# Ugly duplicate IP functions
+def ip_do_block ():
+  """ Handle clicks on block button """
+  move_entry(ip_unblocked_list, ip_unblocked, ip_blocked_list, ip_blocked)
+
+def ip_do_unblock ():
+  """ Handle clicks on unblock button """
+  move_entry(ip_blocked_list, ip_blocked, ip_unblocked_list, ip_unblocked)
+
 def setup ():
   """ Set up GUI """
-  global unblocked_list, blocked_list
+  global unblocked_list, blocked_list, ip_unblocked_list, ip_blocked_list
   top = Toplevel()
   top.title("MAC Blocker")
 
@@ -129,6 +170,30 @@ def setup ():
   box1.pack(**opts)
   buttons.pack(**{"side":LEFT})
   box2.pack(**opts)
+
+  #IP Box
+  bottom = Toplevel()
+  bottom.title("IP Blocker")
+  box3 = Frame(bottom)
+  box4 = Frame(bottom)
+  l3 = Label(box3, text="Allowed")
+  l4 = Label(box4, text="Blocked")
+  ip_unblocked_list = Listbox(box3)
+  ip_blocked_list = Listbox(box4)
+  l3.pack()
+  l4.pack()
+  ip_unblocked_list.pack(expand=TRUE,fill=BOTH)
+  ip_blocked_list.pack(expand=TRUE,fill=BOTH)
+
+  ip_buttons = Frame(bottom)
+  ip_block_button = Button(ip_buttons, text="Block >>", command=ip_do_block)
+  ip_unblock_button = Button(ip_buttons, text="<< Unblock", command=ip_do_unblock)
+  ip_block_button.pack()
+  ip_unblock_button.pack()
+
+  box3.pack(**opts)
+  ip_buttons.pack(**{"side":LEFT})
+  box4.pack(**opts)
 
   core.getLogger().debug("Ready")
 
