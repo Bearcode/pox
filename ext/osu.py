@@ -19,10 +19,17 @@ class DMZFlows(object):
         connection.addListeners(self)
 
         #Static flows
-        self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=20),
-                                             priority=42,
-                                             match=of.ofp_match(dl_type=0x800,
-                                                                nw_dst="128.146.162.35")))
+
+        #OSU Public inbound traffic default to OSU DTN
+        self.connection.send(of.ofp_flow_mod(action=[of.ofp_action_vlan_vid(vlan_vid=1750),
+                                                     of.ofp_action_output(setport=20)],
+                                             priority=1,
+                                             match=of.ofp_match(in_port=61)))
+
+        #OSU DTN Outbound Default to Controller
+        self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=of.OFPP_CONTROLLER),
+                                             priority=2,
+                                             match=of.ofp_match(in_port=20)))
 
 
 class DMZSwitch(object):
