@@ -24,7 +24,7 @@ class DMZFlows(object):
         #Drop PVST+ traffic
         self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=of.OFPP_NONE),
                                              priority=9999,
-                                             match=of.ofp_match(in_port=64, nw_dst=EthAddr("01:00:0c:cc:cc:cd"))))
+                                             match=of.ofp_match(in_port=64, dl_dst=EthAddr("01:00:0c:cc:cc:cd"))))
 
         #Clemson Inbound to Controller
         self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=of.OFPP_CONTROLLER),
