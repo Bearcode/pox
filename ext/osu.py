@@ -35,7 +35,7 @@ class DMZFlows(object):
                                              priority=800,
                                              match=of.ofp_match(in_port=64,
                                                                 dl_type=pkt.ethernet.IP_TYPE,
-                                                                nw_dst=(IPAddr("130.127.3.192"), 32))))
+                                                                nw_dst="130.127.3.192/32")))
 
         #MU Inbound send to OSU DTN
         self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=20),
@@ -53,7 +53,7 @@ class DMZFlows(object):
                                              match=of.ofp_match(in_port=20,
                                                                 dl_vlan=1751,
                                                                 dl_type=pkt.ethernet.IP_TYPE,
-                                                                nw_src=(IPAddr("128.146.162.35"), 32))))
+                                                                nw_src="128.146.162.35/32")))
         #OSU DTN Traffic outbound ARP flood
         self.connection.send(of.ofp_flow_mod(action=[of.ofp_action_strip_vlan(), of.ofp_action_output(of.OFPP_FLOOD)],
                                              priority=500,
