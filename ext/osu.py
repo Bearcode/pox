@@ -22,7 +22,7 @@ class DMZFlows(object):
 
         #OSU Public inbound traffic default to OSU DTN
         self.connection.send(of.ofp_flow_mod(action=[of.ofp_action_vlan_vid(vlan_vid=1750),
-                                                     of.ofp_action_output(setport=20)],
+                                                     of.ofp_action_output(port=20)],
                                              priority=1,
                                              match=of.ofp_match(in_port=61)))
 
