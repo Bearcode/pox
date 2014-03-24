@@ -43,7 +43,7 @@ class DMZFlows(object):
                                              priority=800,
                                              match=of.ofp_match(in_port=20,
                                                                 dl_type=pkt.ethernet.IP_TYPE,
-                                                                nw_dst="130.127.3.192/32")))
+                                                                dl_dst=EthAddr("00:24:38:9c:13:00"))))
 
         #MU Inbound send to OSU DTN
         self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=20),
@@ -120,24 +120,24 @@ class DMZFlows(object):
             output(packet)
 
         def arp_forward(packet):
-            defined = False
             if packet.find('arp').opcode == pkt.arp.REQUEST:
                 if packet.find('arp').protodst in ["130.17.3.193", "128.146.162.35"]:
+                    #ARP inbound to OSU DTN
                     defined = True
                     packet.find('arp').protodst = IPAddr("128.146.162.35")
                     log.debug("%i ARP_forward: Who has %s tell %s" % (packet_id, packet.find('arp').protodst, packet.find('arp').protosrc))
             if packet.find('arp').opcode == pkt.arp.REPLY:
                 if packet.find('arp').protodst in ["130.17.3.192"]:
+                    #Replies destined to Clemson
+                    defined = True
                     packet.find('arp').protosrc = IPAddr("130.17.3.193")
                     log.debug("%i %s is at %s" % (packet_id, packet.find('arp').protosrc, packet.find('arp').hwsrc))
             if defined:
                 output(packet)
             else:
                 arp = packet.find('arp')
-                log.debug("%i arp_forward failed on ARP %s from %s to %s" % (packet_id, arp.opcode, arp.protosrc, arp.protodst))
-                log.debug("type(arp.protosrc): %s"% type(arp.protosrc))
-
-
+                arp_code_map = {1: "Request", 2:"Reply"}
+                log.debug("%i arp_forward failed on ARP %s from %s to %s" % (packet_id, arp_code_map[arp.opcode], arp.protosrc, arp.protodst))
 
         def handle_IP_packet(packet):
             ip = packet.find('ipv4')
