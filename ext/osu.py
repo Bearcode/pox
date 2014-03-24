@@ -85,6 +85,7 @@ class DMZFlows(object):
 
         packet = event.parsed
         global packet_id
+        success = False
 
         def handle_IP_packet(packet):
             ip = packet.find('ipv4')
@@ -93,6 +94,7 @@ class DMZFlows(object):
                 return False
             log.debug("%i Source IP: %s Destination IP: %s" % (packet_id, ip.srcip, ip.dstip))
             log.debug("type IP address: %s" % type(ip.dstip))
+            return True
 
         def handle_ARP_packet(packet):
             arp = packet.find('arp')
@@ -100,20 +102,21 @@ class DMZFlows(object):
             # This packet isn't ARP!
                 return False
             log.debug("%i Who has %s tell %s" % (packet_id, arp.protosrc, arp.protodst))
+            return True
 
         def handle_VLAN_packet(packet):
             vlan = packet.find('vlan')
             log.debug("%i VLAN: %s", (packet_id, vlan))
-            return
+            return True
 
         if packet.type == pkt.VLAN:
-            handle_VLAN_packet(packet)
+            success = handle_VLAN_packet(packet)
         if packet.find('ipv4'):
-            handle_IP_packet(packet)
+            success = handle_IP_packet(packet)
         if packet.find('arp'):
-            handle_ARP_packet(packet)
+            success = handle_ARP_packet(packet)
 
-        else:
+        if not success:
             log.debug("%i parse failed: %s" % (packet_id, packet))
         packet_id += 1
         return
