@@ -83,10 +83,8 @@ class DMZFlows(object):
         """
         Handle packet in messages from the switch to implement above algorithm.
         """
-
         packet = event.parsed
         global packet_id
-        success = False
 
         def ip_rewrite(packet):
             if packet.dstip in ["130.127.3.192"]:
@@ -121,13 +119,16 @@ class DMZFlows(object):
             return True
 
         def parse_tree(packet):
+            success = False
             if packet.find('vlan'):
                 success = handle_VLAN_packet(packet)
             if packet.find('ipv4'):
                 success |= handle_IP_packet(packet)
             if packet.find('arp'):
                 success |= handle_ARP_packet(packet)
-        parse_tree(packet)
+            return success
+
+        success = parse_tree(packet)
 
         if not success:
             log.debug("%i parse failed: %s" % (packet_id, packet))
