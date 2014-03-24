@@ -137,7 +137,7 @@ class DMZFlows(object):
                 log.debug("%i ARP_forward: Who has %s tell %s" % (packet_id, packet.find('arp').protodst, packet.find('arp').protosrc))
             if packet.find('arp').opcode == pkt.arp.REPLY:
                 packet.find('arp').protosrc = IPAddr("130.17.3.193")
-                log.debug("%i Is at %s" % (packet_id, packet.find('arp').hwsrc))
+                log.debug("%i %s is at %s" % (packet_id, packet.find('arp').protosrc, packet.find('arp').hwsrc))
             output(packet)
 
 
@@ -160,7 +160,8 @@ class DMZFlows(object):
             if arp.opcode == pkt.arp.REQUEST:
                 log.debug("%i Who has %s tell %s" % (packet_id, arp.protodst, arp.protosrc))
             if arp.opcode == pkt.arp.REPLY:
-                log.debug("%i Is at %s" % (packet_id, arp.hwsrc))
+                log.debug("%i %s Is at %s" % (packet_id, arp.protosrc, arp.hwsrc))
+
             if forward:
                 arp_forward(packet)
             return True
