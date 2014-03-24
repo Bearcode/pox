@@ -92,10 +92,20 @@ class DMZFlows(object):
             log.debug("Source IP: %s Destination IP: %s" % (ip.srcip, ip.dstip))
             log.debug("type IP address: %s" % type(ip.dstip))
 
+        def handle_ARP_packet(packet):
+            arp = packet.find('arp')
+            if arp is None:
+            # This packet isn't ARP!
+                return False
+            log.debug("Who has %s tell %s" % (arp.protosrc, arp.protodst))
+
         if packet.type == pkt.IPV4:
             handle_IP_packet(packet)
+        if packet.type == packet.ARP_TYP:
+            handle_ARP_packet(packet)
+
         else:
-            log.debug(packet)
+            log.debug("parse failed: %s" % packet)
             return
 
 
