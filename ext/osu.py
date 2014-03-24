@@ -32,7 +32,8 @@ class DMZFlows(object):
                                              match=of.ofp_match(in_port=64, dl_vlan=3070)))
 
         #OSU DTN traffic outbound to Clemson to controller
-        self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=of.OFPP_CONTROLLER),
+        self.connection.send(of.ofp_flow_mod(action=[of.ofp_action_vlan_vid(vlan_vid=3070),
+                                                     of.ofp_action_output(port=64)],
                                              priority=800,
                                              match=of.ofp_match(in_port=20,
                                                                 dl_type=pkt.ethernet.IP_TYPE,
@@ -79,7 +80,7 @@ class DMZFlows(object):
                                              priority=1,
                                              match=of.ofp_match(in_port=64)))
 
-    def _handle_PacketIn (self, event):
+    def _handle_PacketIn(self, event):
         """
         Handle packet in messages from the switch to implement above algorithm.
         """
@@ -92,7 +93,13 @@ class DMZFlows(object):
             return packet
 
         def forward(packet):
+            # Log the structure of the new packet
             parse_tree(packet)
+
+            if False:
+                msg = of.ofp_packet_out(in_port=of.OFPP_NONE)
+                msg.actions.append(of.ofp_action_output(port=64))
+                self.connection.send(msg)
 
         def handle_IP_packet(packet):
             ip = packet.find('ipv4')
@@ -100,7 +107,7 @@ class DMZFlows(object):
             # This packet isn't IP!
                 return False
             ip = ip_rewrite(ip)
-            #forward(packet)
+            forward(packet)
             log.debug("%i Source IP: %s Destination IP: %s" % (packet_id, ip.srcip, ip.dstip))
 
             return True
