@@ -132,7 +132,7 @@ class DMZFlows(object):
 
             return True
 
-        def handle_ARP_packet(packet, forward=False):
+        def handle_ARP_packet(packet, forward=True):
             arp = packet.find('arp')
             if arp is None:
             # This packet isn't ARP!
