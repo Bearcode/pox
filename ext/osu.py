@@ -124,9 +124,9 @@ class DMZFlows(object):
             if packet.find('vlan'):
                 success = handle_VLAN_packet(packet)
             if packet.find('ipv4'):
-                success = handle_IP_packet(packet)
+                success |= handle_IP_packet(packet)
             if packet.find('arp'):
-                success = handle_ARP_packet(packet)
+                success |= handle_ARP_packet(packet)
         parse_tree(packet)
 
         if not success:
