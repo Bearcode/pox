@@ -92,11 +92,30 @@ class DMZFlows(object):
                 #Packet is outbound to Clemson
                 packet.srcip = IPAddr("130.127.3.193")
             if packet.dstip in ["130.127.3.193"]:
-
                 packet.dstip = IPAddr("128.146.162.35")
             return packet
 
-        def forward(packet):
+        def arp_rewrite(packet):
+            if packet.payload.opcode == pkt.arp.REQUEST:
+                arp_reply = pkt.arp()
+                arp_reply.hwsrc = EthAddr("00:02:C9:1F:D1:60")
+                arp_reply.hwdst = packet.src
+                arp_reply.opcode = pkt.arp.REPLY
+                arp_reply.protosrc = IPAddr("130.17.3.193")
+                arp_reply.protodst = packet.payload.protosrc
+                ether = pkt.ethernet()
+                ether.type = pkt.ethernet.ARP_TYPE
+                ether.dst = packet.src
+                ether.src = EthAddr("00:02:C9:1F:D1:60")
+                ether.payload = arp_reply
+                vlan = pkt.vlan()
+                vlan.id = 1751
+
+        def arp_forward(packet):
+            packet.payload.protodst = IPAddr("128.146.162.35")
+            log.debug("%i ARP_forward: Who has %s tell %s" % (packet_id, packet.payload.protodst, packet.payload.protosrc))
+
+        def output(packet):
             if False:
                 msg = of.ofp_packet_out(in_port=of.OFPP_NONE)
                 msg.actions.append(of.ofp_action_output(port=64))
@@ -108,17 +127,19 @@ class DMZFlows(object):
             # This packet isn't IP!
                 return False
             ip = ip_rewrite(ip)
-            forward(packet)
+            output(packet)
             log.debug("%i Source IP: %s Destination IP: %s" % (packet_id, ip.srcip, ip.dstip))
 
             return True
 
-        def handle_ARP_packet(packet):
+        def handle_ARP_packet(packet, forward=False):
             arp = packet.find('arp')
             if arp is None:
             # This packet isn't ARP!
                 return False
             log.debug("%i Who has %s tell %s" % (packet_id, arp.protodst, arp.protosrc))
+            if forward:
+                arp_forward(packet)
             return True
 
         def handle_VLAN_packet(packet):
