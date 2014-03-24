@@ -30,10 +30,11 @@ class DMZFlows(object):
         self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=of.OFPP_CONTROLLER),
                                              priority=800,
                                              match=of.ofp_match(in_port=64, dl_vlan=3070)))
+
         #OSU DTN traffic outbound to Clemson to controller
-        self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=20),
+        self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=of.OFPP_CONTROLLER),
                                              priority=800,
-                                             match=of.ofp_match(in_port=64,
+                                             match=of.ofp_match(in_port=20,
                                                                 dl_type=pkt.ethernet.IP_TYPE,
                                                                 nw_dst="130.127.3.192/32")))
 
