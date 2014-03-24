@@ -119,30 +119,21 @@ class DMZFlows(object):
                                                                              orignal_dst, packet.find('ipv4').dstip))
             output(packet)
 
-        def arp_rewrite(packet):
-            if packet.payload.opcode == pkt.arp.REQUEST:
-                arp_reply = pkt.arp()
-                arp_reply.hwsrc = EthAddr("00:02:C9:1F:D1:60")
-                arp_reply.hwdst = packet.src
-                arp_reply.opcode = pkt.arp.REPLY
-                arp_reply.protosrc = IPAddr("130.17.3.193")
-                arp_reply.protodst = packet.payload.protosrc
-                ether = pkt.ethernet()
-                ether.type = pkt.ethernet.ARP_TYPE
-                ether.dst = packet.src
-                ether.src = EthAddr("00:02:C9:1F:D1:60")
-                ether.payload = arp_reply
-                vlan = pkt.vlan()
-                vlan.id = 1751
-
         def arp_forward(packet):
+            defined = False
             if packet.find('arp').opcode == pkt.arp.REQUEST:
-                packet.find('arp').protodst = IPAddr("128.146.162.35")
-                log.debug("%i ARP_forward: Who has %s tell %s" % (packet_id, packet.find('arp').protodst, packet.find('arp').protosrc))
+                if packet.find('arp').protodst in ["130.17.3.193", "128.146.162.35"]:
+                    defined = True
+                    packet.find('arp').protodst = IPAddr("128.146.162.35")
+                    log.debug("%i ARP_forward: Who has %s tell %s" % (packet_id, packet.find('arp').protodst, packet.find('arp').protosrc))
             if packet.find('arp').opcode == pkt.arp.REPLY:
-                packet.find('arp').protosrc = IPAddr("130.17.3.193")
-                log.debug("%i %s is at %s" % (packet_id, packet.find('arp').protosrc, packet.find('arp').hwsrc))
-            output(packet)
+                if packet.find('arp').protodst in ["130.17.3.192"]:
+                    packet.find('arp').protosrc = IPAddr("130.17.3.193")
+                    log.debug("%i %s is at %s" % (packet_id, packet.find('arp').protosrc, packet.find('arp').hwsrc))
+            if defined:
+                output(packet)
+            else:
+                log.debug("%i arp_forward failed on %s" % (packet_id, packet))
 
 
 
