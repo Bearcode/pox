@@ -92,7 +92,7 @@ class DMZFlows(object):
             log.debug("Source IP: %s Destination IP: %s" % (ip.srcip, ip.dstip))
             log.debug("type IP address: %s" % type(ip.dstip))
 
-        if packet.type == pkt.IP_TYPE:
+        if packet.type == pkt.IPV4:
             handle_IP_packet(packet)
         else:
             log.debug(packet)
