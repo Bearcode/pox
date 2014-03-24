@@ -133,7 +133,7 @@ class DMZFlows(object):
                     #Replies destined to Clemson
                     defined = True
                     packet.find('arp').protosrc = IPAddr("130.127.3.193")
-                    log.debug("%i %s is at %s" % (packet_id, packet.find('arp').protosrc, packet.find('arp').hwsrc))
+                    log.debug("%i ARP_forward: %s is at %s" % (packet_id, packet.find('arp').protosrc, packet.find('arp').hwsrc))
             if defined:
                 output(packet)
             else:
