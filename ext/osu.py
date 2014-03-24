@@ -88,6 +88,19 @@ class DMZFlows(object):
         packet = event.parsed
         global packet_id
 
+        def output(packet):
+            out_port = 64
+            out_vlan = 3070
+            msg = of.ofp_packet_out(in_port=of.OFPP_NONE)
+            msg.data = packet
+            if event.port == 64:
+                out_port = 20
+                out_vlan = 1751
+            msg.actions.append(of.ofp_action_vlan_vid(vlan_id=out_vlan))
+            msg.actions.append(of.ofp_action_output(port=out_port))
+            log.debug("%i Forwarding %s from %i out: %i as VLAN %i" % (packet_id, event.port, packet, out_port, out_vlan))
+            self.connection.send(msg)
+
         def ip_rewrite(packet):
             if packet.dstip in ["130.127.3.192"]:
                 #Packet is outbound to Clemson
@@ -115,19 +128,9 @@ class DMZFlows(object):
         def arp_forward(packet):
             packet.find('arp').protodst = IPAddr("128.146.162.35")
             log.debug("%i ARP_forward: Who has %s tell %s" % (packet_id, packet.find('arp').protodst, packet.find('arp').protosrc))
+            output(packet)
 
-        def output(packet):
-            out_port = 64
-            out_vlan = 3070
-            msg = of.ofp_packet_out(in_port=of.OFPP_NONE)
-            msg.data = packet
-            if event.port == 64:
-                out_port = 20
-                out_vlan = 1751
-            msg.actions.append(of.ofp_action_vlan_vid(vlan_id=out_vlan))
-            msg.actions.append(of.ofp_action_output(port=out_port))
-            log.debug("%i Forwarding %s from %i out: %i as VLAN %i" % (packet_id, event.port, packet, out_port, out_vlan))
-            self.connection.send(msg)
+
 
         def handle_IP_packet(packet):
             ip = packet.find('ipv4')
