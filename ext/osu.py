@@ -38,9 +38,8 @@ class DMZFlows(object):
                                              priority=800,
                                              match=of.ofp_match(in_port=64, dl_vlan=3070)))
 
-        #OSU DTN traffic outbound to Clemson rewrite VLAN tag
-        self.connection.send(of.ofp_flow_mod(action=[of.ofp_action_vlan_vid(vlan_vid=3070),
-                                                     of.ofp_action_output(port=64)],
+        #OSU DTN traffic outbound to Clemson rewrite src
+        self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=of.OFPP_CONTROLLER),
                                              priority=800,
                                              match=of.ofp_match(in_port=20,
                                                                 dl_type=pkt.ethernet.IP_TYPE,
@@ -108,12 +107,17 @@ class DMZFlows(object):
             self.connection.send(msg)
 
         def ip_rewrite(packet):
-            if packet.dstip in ["130.127.3.192"]:
+            orignal_dst = packet.find('ipv4').dstip
+            orignal_src = packet.find('ipv4').srcip
+            if packet.find('ipv4').dstip in ["130.127.3.192"]:
                 #Packet is outbound to Clemson
-                packet.srcip = IPAddr("130.127.3.193")
-            if packet.dstip in ["130.127.3.193"]:
-                packet.dstip = IPAddr("128.146.162.35")
-            return packet
+                packet.find('ipv4').srcip = IPAddr("130.127.3.193")
+            if packet.find('ipv4').dstip in ["130.127.3.193"]:
+                packet.find('ipv4').dstip = IPAddr("128.146.162.35")
+            log.debug("%i Rewrote Source: %s -> %s Destination: %s -> %s" % (packet_id,
+                                                                             orignal_src, packet.find('ipv4').srcip,
+                                                                             orignal_dst, packet.find('ipv4').dstip))
+            output(packet)
 
         def arp_rewrite(packet):
             if packet.payload.opcode == pkt.arp.REQUEST:
@@ -147,8 +151,8 @@ class DMZFlows(object):
             if ip is None:
             # This packet isn't IP!
                 return False
-            ip = ip_rewrite(ip)
             log.debug("%i Source IP: %s Destination IP: %s" % (packet_id, ip.srcip, ip.dstip))
+            ip_rewrite(packet)
 
             return True
 
