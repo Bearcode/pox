@@ -101,7 +101,7 @@ class DMZFlows(object):
 
         if packet.type == pkt.IPV4:
             handle_IP_packet(packet)
-        if packet.type == packet.ARP:
+        if packet.type == pkt.ARP:
             handle_ARP_packet(packet)
 
         else:
