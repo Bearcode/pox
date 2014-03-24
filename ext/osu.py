@@ -138,7 +138,6 @@ class DMZFlows(object):
             # This packet isn't IP!
                 return False
             ip = ip_rewrite(ip)
-            output(packet)
             log.debug("%i Source IP: %s Destination IP: %s" % (packet_id, ip.srcip, ip.dstip))
 
             return True
