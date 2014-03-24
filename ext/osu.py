@@ -9,7 +9,7 @@ from pox.lib.addresses import IPAddr, EthAddr
 import pox.lib.packet as pkt
 
 log = core.getLogger()
-
+packet_id = 0
 
 class DMZFlows(object):
     def __init__(self, connection):
@@ -84,13 +84,14 @@ class DMZFlows(object):
         """
 
         packet = event.parsed
+        global packet_id
 
         def handle_IP_packet(packet):
             ip = packet.find('ipv4')
             if ip is None:
             # This packet isn't IP!
                 return False
-            log.debug("Source IP: %s Destination IP: %s" % (ip.srcip, ip.dstip))
+            log.debug("%i Source IP: %s Destination IP: %s" % (packet_id, ip.srcip, ip.dstip))
             log.debug("type IP address: %s" % type(ip.dstip))
 
         def handle_ARP_packet(packet):
@@ -98,11 +99,11 @@ class DMZFlows(object):
             if arp is None:
             # This packet isn't ARP!
                 return False
-            log.debug("Who has %s tell %s" % (arp.protosrc, arp.protodst))
+            log.debug("%i Who has %s tell %s" % (packet_id, arp.protosrc, arp.protodst))
 
         def handle_VLAN_packet(packet):
             vlan = packet.find('vlan')
-            log.debug("VLAN: %s", vlan)
+            log.debug("%i VLAN: %s", (packet_id, vlan))
             return
 
         if packet.type == pkt.VLAN:
@@ -113,8 +114,9 @@ class DMZFlows(object):
             handle_ARP_packet(packet)
 
         else:
-            log.debug("parse failed: %s" % packet)
-            return
+            log.debug("%i parse failed: %s" % (packet_id, packet))
+        packet_id += 1
+        return
 
 
 class DMZSwitch(object):
