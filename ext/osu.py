@@ -32,7 +32,7 @@ class DMZFlows(object):
                                              priority=801,
                                              match=of.ofp_match(in_port=20,
                                                                 dl_type=pkt.ethernet.ARP_TYPE,
-                                                                nw_dst="130.127.3.192/32")))
+                                                                dl_dst=EthAddr("00:24:38:9c:13:00"))))
         #Clemson Inbound to Controller
         self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=of.OFPP_CONTROLLER),
                                              priority=800,
@@ -43,7 +43,7 @@ class DMZFlows(object):
                                              priority=800,
                                              match=of.ofp_match(in_port=20,
                                                                 dl_type=pkt.ethernet.IP_TYPE,
-                                                                dl_dst=EthAddr("00:24:38:9c:13:00"))))
+                                                                nw_dst="130.127.3.192/32")))
 
         #MU Inbound send to OSU DTN
         self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=20),
