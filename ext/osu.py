@@ -122,16 +122,16 @@ class DMZFlows(object):
         def arp_forward(packet):
             defined = False
             if packet.find('arp').opcode == pkt.arp.REQUEST:
-                if packet.find('arp').protodst in ["130.17.3.193", "128.146.162.35"]:
+                if packet.find('arp').protodst in ["130.127.3.192", "128.146.162.35"]:
                     #ARP inbound to OSU DTN
                     defined = True
                     packet.find('arp').protodst = IPAddr("128.146.162.35")
                     log.debug("%i ARP_forward: Who has %s tell %s" % (packet_id, packet.find('arp').protodst, packet.find('arp').protosrc))
             if packet.find('arp').opcode == pkt.arp.REPLY:
-                if packet.find('arp').protodst in ["130.17.3.192"]:
+                if packet.find('arp').protodst in ["130.127.3.192"]:
                     #Replies destined to Clemson
                     defined = True
-                    packet.find('arp').protosrc = IPAddr("130.17.3.193")
+                    packet.find('arp').protosrc = IPAddr("130.127.3.193")
                     log.debug("%i %s is at %s" % (packet_id, packet.find('arp').protosrc, packet.find('arp').hwsrc))
             if defined:
                 output(packet)
