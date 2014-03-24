@@ -89,7 +89,7 @@ class DMZFlows(object):
         success = False
 
         def ip_rewrite(packet):
-            if packet.dstip is in ["130.127.3.192"]:
+            if packet.dstip in ["130.127.3.192"]:
                 packet.srcip = IPAddr("130.127.3.193")
             return packet
 
