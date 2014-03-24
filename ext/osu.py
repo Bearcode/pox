@@ -117,6 +117,7 @@ class DMZFlows(object):
             log.debug("%i Rewrote Source: %s -> %s Destination: %s -> %s" % (packet_id,
                                                                              orignal_src, packet.find('ipv4').srcip,
                                                                              orignal_dst, packet.find('ipv4').dstip))
+            parse_tree(packet, forward=False)
             output(packet)
 
         def arp_forward(packet):
@@ -140,13 +141,14 @@ class DMZFlows(object):
                 arp_code_map = {1: "Request", 2:"Reply"}
                 log.debug("%i arp_forward failed on ARP %s from %s to %s" % (packet_id, arp_code_map[arp.opcode], arp.protosrc, arp.protodst))
 
-        def handle_IP_packet(packet):
+        def handle_IP_packet(packet, forward=True):
             ip = packet.find('ipv4')
             if ip is None:
             # This packet isn't IP!
                 return False
             log.debug("%i Source IP: %s Destination IP: %s" % (packet_id, ip.srcip, ip.dstip))
-            ip_rewrite(packet)
+            if forward:
+                ip_rewrite(packet)
 
             return True
 
@@ -169,14 +171,14 @@ class DMZFlows(object):
             log.debug("%i VLAN: %s" % (packet_id, vlan))
             return True
 
-        def parse_tree(packet):
+        def parse_tree(packet, forward=True):
             success = False
             if packet.find('vlan'):
                 success = handle_VLAN_packet(packet)
             if packet.find('ipv4'):
-                success |= handle_IP_packet(packet)
+                success |= handle_IP_packet(packet, forward)
             if packet.find('arp'):
-                success |= handle_ARP_packet(packet)
+                success |= handle_ARP_packet(packet, forward)
             return success
 
         success = parse_tree(packet)
