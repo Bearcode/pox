@@ -8,7 +8,7 @@ from pox.lib.util import dpid_to_str
 from pox.lib.addresses import IPAddr, EthAddr
 import pox.lib.packet as pkt
 
-log = core.getLogger()
+log = core.getLogger(log_level=INFO)
 packet_id = 0
 
 class DMZFlows(object):
@@ -112,8 +112,8 @@ class DMZFlows(object):
                 vlan.id = 1751
 
         def arp_forward(packet):
-            packet.payload.protodst = IPAddr("128.146.162.35")
-            log.debug("%i ARP_forward: Who has %s tell %s" % (packet_id, packet.payload.protodst, packet.payload.protosrc))
+            packet.find('arp').protodst = IPAddr("128.146.162.35")
+            log.debug("%i ARP_forward: Who has %s tell %s" % (packet_id, packet.find('arp').protodst, packet.find('arp').protosrc))
 
         def output(packet):
             if False:
