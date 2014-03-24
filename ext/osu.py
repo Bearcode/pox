@@ -77,9 +77,26 @@ class DMZFlows(object):
         self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=of.OFPP_CONTROLLER),
                                              priority=1,
                                              match=of.ofp_match(in_port=64)))
+    def _handle_PacketIn (self, event):
+        """
+        Handle packet in messages from the switch to implement above algorithm.
+        """
 
+        packet = event.parsed
 
+        def handle_IP_packet(packet):
+            ip = packet.find('ipv4')
+            if ip is None:
+            # This packet isn't IP!
+                return False
+            log.debug("Source IP: %s Destination IP: %s" % (ip.srcip, ip.dstip))
+            log.debug("type IP address: %s" % type(ip.dstip))
 
+        if packet.type == pkt.IP_TYPE:
+            handle_IP_packet(packet)
+        else:
+            log.debug(packet)
+            return
 
 
 class DMZSwitch(object):
