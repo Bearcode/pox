@@ -89,7 +89,11 @@ class DMZFlows(object):
 
         def ip_rewrite(packet):
             if packet.dstip in ["130.127.3.192"]:
+                #Packet is outbound to Clemson
                 packet.srcip = IPAddr("130.127.3.193")
+            if packet.dstip in ["130.127.3.193"]:
+
+                packet.dstip = IPAddr("128.146.162.35")
             return packet
 
         def forward(packet):
@@ -114,7 +118,7 @@ class DMZFlows(object):
             if arp is None:
             # This packet isn't ARP!
                 return False
-            log.debug("%i Who has %s tell %s" % (packet_id, arp.protosrc, arp.protodst))
+            log.debug("%i Who has %s tell %s" % (packet_id, arp.protodst, arp.protosrc))
             return True
 
         def handle_VLAN_packet(packet):
