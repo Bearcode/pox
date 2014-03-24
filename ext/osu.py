@@ -93,9 +93,6 @@ class DMZFlows(object):
             return packet
 
         def forward(packet):
-            # Log the structure of the new packet
-            parse_tree(packet)
-
             if False:
                 msg = of.ofp_packet_out(in_port=of.OFPP_NONE)
                 msg.actions.append(of.ofp_action_output(port=64))
