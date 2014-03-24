@@ -99,9 +99,16 @@ class DMZFlows(object):
                 return False
             log.debug("Who has %s tell %s" % (arp.protosrc, arp.protodst))
 
-        if packet.type == pkt.IPV4:
+        def handle_VLAN_packet(packet):
+            vlan = packet.find('vlan')
+            log.debug("VLAN: %s", vlan)
+            return
+
+        if packet.type == pkt.VLAN:
+            handle_VLAN_packet(packet)
+        if packet.find('ipv4'):
             handle_IP_packet(packet)
-        if packet.type == pkt.ARP:
+        if packet.find('arp'):
             handle_ARP_packet(packet)
 
         else:
