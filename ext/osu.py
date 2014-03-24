@@ -122,7 +122,7 @@ class DMZFlows(object):
         def arp_forward(packet):
             defined = False
             if packet.find('arp').opcode == pkt.arp.REQUEST:
-                if packet.find('arp').protodst in ["130.127.3.192", "128.146.162.35"]:
+                if packet.find('arp').protodst in ["130.127.3.193", "128.146.162.35"]:
                     #ARP inbound to OSU DTN
                     defined = True
                     packet.find('arp').protodst = IPAddr("128.146.162.35")
