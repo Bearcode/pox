@@ -133,7 +133,9 @@ class DMZFlows(object):
             if defined:
                 output(packet)
             else:
-                log.debug("%i arp_forward failed on %s" % (packet_id, packet))
+                arp = packet.find('arp')
+                log.debug("%i arp_forward failed on ARP %s from %s to %s" % (packet_id, arp.opcode, arp.protosrc, arp.protodst))
+                log.debug("type(arp.protosrc): %s"% type(arp.protosrc))
 
 
 
