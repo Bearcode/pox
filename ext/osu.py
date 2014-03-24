@@ -8,8 +8,9 @@ from pox.lib.util import dpid_to_str
 from pox.lib.addresses import IPAddr, EthAddr
 import pox.lib.packet as pkt
 
-log = core.getLogger(log_level=INFO)
+log = core.getLogger()
 packet_id = 0
+
 
 class DMZFlows(object):
     def __init__(self, connection):
