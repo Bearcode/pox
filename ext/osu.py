@@ -93,7 +93,6 @@ class DMZFlows(object):
             # This packet isn't IP!
                 return False
             log.debug("%i Source IP: %s Destination IP: %s" % (packet_id, ip.srcip, ip.dstip))
-            log.debug("type IP address: %s" % type(ip.dstip))
             return True
 
         def handle_ARP_packet(packet):
