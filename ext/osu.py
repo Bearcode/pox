@@ -78,6 +78,7 @@ class DMZFlows(object):
         self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=of.OFPP_CONTROLLER),
                                              priority=1,
                                              match=of.ofp_match(in_port=64)))
+
     def _handle_PacketIn (self, event):
         """
         Handle packet in messages from the switch to implement above algorithm.
@@ -87,12 +88,23 @@ class DMZFlows(object):
         global packet_id
         success = False
 
+        def ip_rewrite(packet):
+            if packet.dstip is in ["130.127.3.192"]:
+                packet.srcip = IPAddr("130.127.3.193")
+            return packet
+
+        def forward(packet):
+            parse_tree(packet)
+
         def handle_IP_packet(packet):
             ip = packet.find('ipv4')
             if ip is None:
             # This packet isn't IP!
                 return False
+            ip = ip_rewrite(ip)
+            #forward(packet)
             log.debug("%i Source IP: %s Destination IP: %s" % (packet_id, ip.srcip, ip.dstip))
+
             return True
 
         def handle_ARP_packet(packet):
@@ -108,12 +120,14 @@ class DMZFlows(object):
             log.debug("%i VLAN: %s", (packet_id, vlan))
             return True
 
-        if packet.type == pkt.VLAN:
-            success = handle_VLAN_packet(packet)
-        if packet.find('ipv4'):
-            success = handle_IP_packet(packet)
-        if packet.find('arp'):
-            success = handle_ARP_packet(packet)
+        def parse_tree(packet):
+            if packet.find('vlan'):
+                success = handle_VLAN_packet(packet)
+            if packet.find('ipv4'):
+                success = handle_IP_packet(packet)
+            if packet.find('arp'):
+                success = handle_ARP_packet(packet)
+        parse_tree(packet)
 
         if not success:
             log.debug("%i parse failed: %s" % (packet_id, packet))
