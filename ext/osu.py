@@ -27,12 +27,18 @@ class DMZFlows(object):
                                              priority=9999,
                                              match=of.ofp_match(in_port=64, dl_dst=EthAddr("01:00:0c:cc:cc:cd"))))
 
+        #OSU DTN ARP traffic outbound to Clemson to controller
+        self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=of.OFPP_CONTROLLER),
+                                             priority=801,
+                                             match=of.ofp_match(in_port=20,
+                                                                dl_type=pkt.ethernet.ARP_TYPE,
+                                                                nw_dst="130.127.3.192/32")))
         #Clemson Inbound to Controller
         self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=of.OFPP_CONTROLLER),
                                              priority=800,
                                              match=of.ofp_match(in_port=64, dl_vlan=3070)))
 
-        #OSU DTN traffic outbound to Clemson to controller
+        #OSU DTN traffic outbound to Clemson rewrite VLAN tag
         self.connection.send(of.ofp_flow_mod(action=[of.ofp_action_vlan_vid(vlan_vid=3070),
                                                      of.ofp_action_output(port=64)],
                                              priority=800,
