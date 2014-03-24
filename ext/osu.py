@@ -132,8 +132,12 @@ class DMZFlows(object):
                 vlan.id = 1751
 
         def arp_forward(packet):
-            packet.find('arp').protodst = IPAddr("128.146.162.35")
-            log.debug("%i ARP_forward: Who has %s tell %s" % (packet_id, packet.find('arp').protodst, packet.find('arp').protosrc))
+            if packet.find('arp').opcode == pkt.arp.REQUEST:
+                packet.find('arp').protodst = IPAddr("128.146.162.35")
+                log.debug("%i ARP_forward: Who has %s tell %s" % (packet_id, packet.find('arp').protodst, packet.find('arp').protosrc))
+            if packet.find('arp').opcode == pkt.arp.REPLY:
+                packet.find('arp').protosrc = IPAddr("130.17.3.193")
+                log.debug("%i Is at %s" % (packet_id, packet.find('arp').hwsrc))
             output(packet)
 
 
@@ -153,7 +157,10 @@ class DMZFlows(object):
             if arp is None:
             # This packet isn't ARP!
                 return False
-            log.debug("%i Who has %s tell %s" % (packet_id, arp.protodst, arp.protosrc))
+            if arp.opcode == pkt.arp.REQUEST:
+                log.debug("%i Who has %s tell %s" % (packet_id, arp.protodst, arp.protosrc))
+            if arp.opcode == pkt.arp.REPLY:
+                log.debug("%i Is at %s" % (packet_id, arp.hwsrc))
             if forward:
                 arp_forward(packet)
             return True
