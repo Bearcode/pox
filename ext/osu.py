@@ -98,7 +98,7 @@ class DMZFlows(object):
                 out_vlan = 1751
             msg.actions.append(of.ofp_action_vlan_vid(vlan_vid=out_vlan))
             msg.actions.append(of.ofp_action_output(port=out_port))
-            log.debug("%i Forwarding %s from %i out: %i as VLAN %i" % (packet_id, event.port, packet, out_port, out_vlan))
+            log.debug("%i Forwarding %s from %i out: %i as VLAN %i" % (packet_id, packet, event.port, out_port, out_vlan))
             self.connection.send(msg)
 
         def ip_rewrite(packet):
