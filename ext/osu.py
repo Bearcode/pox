@@ -117,7 +117,7 @@ class DMZFlows(object):
 
         def handle_VLAN_packet(packet):
             vlan = packet.find('vlan')
-            log.debug("%i VLAN: %s", (packet_id, vlan))
+            log.debug("%i VLAN: %s" % (packet_id, vlan))
             return True
 
         def parse_tree(packet):
