@@ -45,6 +45,11 @@ class DMZFlows(object):
                                                                 dl_type=pkt.ethernet.IP_TYPE,
                                                                 nw_dst="130.127.3.192/32")))
 
+        #OSU DTN RoCE traffic outbound to MU
+        self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=64),
+                                             priority=701,
+                                             match=of.ofp_match(in_port=20, dl_type=0x8915)))
+
         #MU Inbound send to OSU DTN
         self.connection.send(of.ofp_flow_mod(action=of.ofp_action_output(port=20),
                                              priority=700,
