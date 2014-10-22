@@ -51,7 +51,8 @@ class DMZFlows(object):
                                              match=of.ofp_match(in_port=64, dl_vlan=1751)))
 
         #OSU DTN traffic outbound to MU IP 128.206.117.1 to AL2S
-        self.connection.send(of.ofp_flow_mod(action=[of.ofp_action_vlan_vid(vlan_vid=1751),
+        self.connection.send(of.ofp_flow_mod(action=[of.ofp_action_dl_addr.set_dst(EthAddr("00:02:C9:1F:D4:60")),
+                                                     of.ofp_action_vlan_vid(vlan_vid=1751),
                                                      of.ofp_action_output(port=64)],
                                              priority=700,
                                              match=of.ofp_match(in_port=20,
