@@ -47,6 +47,13 @@ class DMZFlows(object):
                                              match=of.ofp_match(in_port=20,
                                                                 dl_type=pkt.ethernet.IP_TYPE,
                                                                 nw_dst="130.127.3.192/32")))
+        #Forward perfsonar03.clemson.edu IP
+        self.connection.send(of.ofp_flow_mod(action=[of.ofp_action_vlan_vid(vlan_vid=3070),
+                                                     of.ofp_action_output(port=64)],
+                                             priority=799,
+                                             match=of.ofp_match(in_port=20,
+                                                                dl_type=pkt.ethernet.IP_TYPE,
+                                                                nw_dst="130.127.215.238/32")))
 
         #MU L2 Inbound send to OSU DTN
         self.connection.send(of.ofp_flow_mod(action=[of.ofp_action_strip_vlan(), of.ofp_action_output(port=20)],
