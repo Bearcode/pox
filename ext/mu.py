@@ -26,9 +26,9 @@ class DMZFlows(object):
         #AL2S inbound default to controller
         self.connection.send(of.ofp_flow_mod(action=[of.ofp_action_vlan_vid(vlan_vid=1751),
                                                      of.ofp_action_output(port=1)],
-                                             priority=899,
+                                             priority=901,
                                              match=of.ofp_match(in_port=3,
-                                                                dl_type=pkt.ethernet.IP_TYPE,
+                                                                dl_type=0x800,
                                                                 nw_dst="128.146.162.35/32")))
 
 
