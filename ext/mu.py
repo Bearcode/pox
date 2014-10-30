@@ -21,6 +21,10 @@ class DMZFlows(object):
         # to the connection
         connection.addListeners(self)
 
+        # Clear Static flows
+
+        self.connection.send(of.ofp_flow_mod(command=of.OFPFC_DELETE))
+
         #Static flows
 
         #AL2S inbound default to controller
