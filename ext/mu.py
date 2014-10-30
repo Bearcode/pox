@@ -21,10 +21,6 @@ class DMZFlows(object):
         # to the connection
         connection.addListeners(self)
 
-        # Clear Static flows
-
-        self.connection.send(of.ofp_flow_mod(command=of.OFPFC_DELETE))
-
         #Static flows
 
         #Missouri Management MAC to Gateway
@@ -35,7 +31,7 @@ class DMZFlows(object):
 
         #Missouri Management IP to Gateway
         self.connection.send(of.ofp_flow_mod(match=of.ofp_match(dl_type=pkt.ethernet.IP_TYPE,
-                                                                nw_srd="128.206.117.124/32"),
+                                                                nw_src="128.206.117.124/32"),
                                              priority=900,
                                              action=[of.ofp_action_vlan_vid(vlan_vid=350),
                                                      of.ofp_action_output(port=1)]))
