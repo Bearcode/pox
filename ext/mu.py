@@ -44,6 +44,7 @@ class DMZFlows(object):
         # Status: ERROR: Reason: Error:IP parameters exist but ether type is not 0x800, Flow Validation Failed
 
         self.connection.send(of.ofp_flow_mod(match=of.ofp_match(in_port=1,
+                                                                dl_type=pkt.ethernet.IP_TYPE,  #Breaks RoCE and non L3 protocols
                                                                 dl_dst=EthAddr("00:02:c9:1f:d4:60")),
                                              priority=900,
                                              action=[of.ofp_action_strip_vlan(),
@@ -62,6 +63,7 @@ class DMZFlows(object):
         #Oct 30 17:00:23:D:FLOW MOD ERROR: Ctrl. Transaction id:  4116 (00001014)
         # Status: ERROR: Reason: Error:IP parameters exist but ether type is not 0x800, Flow Validation Failed
         self.connection.send(of.ofp_flow_mod(match=of.ofp_match(in_port=3,
+                                                                dl_type=pkt.ethernet.IP_TYPE,  #Breaks ARP
                                                                 dl_src=EthAddr("00:02:c9:1f:d4:60")),
                                              priority=700,
                                              action=[of.ofp_action_vlan_vid(vlan_vid=350),
