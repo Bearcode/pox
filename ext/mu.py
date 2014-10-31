@@ -23,11 +23,15 @@ class DMZFlows(object):
 
         #Static flows
 
-        #Missouri Management MAC to Gateway
-        #Oct 31 12:47:50:D:ERROR: Ctrl. Transaction id:  6
-        # Status: FLOW_MOD ERROR: Reason: Error: Not a valid L2 or L3 or L23 Openflow rule
-
-        self.connection.send(of.ofp_flow_mod(match=of.ofp_match(dl_src=EthAddr("74:8e:f8:fc:6a:00")),
+        #Missouri Management MAC to Gateway IP
+        self.connection.send(of.ofp_flow_mod(match=of.ofp_match(dl_src=EthAddr("74:8e:f8:fc:6a:00"),
+                                                                dl_type=pkt.ethernet.IP_TYPE),
+                                             priority=900,
+                                             action=[of.ofp_action_vlan_vid(vlan_vid=350),
+                                                     of.ofp_action_output(port=1)]))
+        #Missouri Management MAC to Gateway ARP
+        self.connection.send(of.ofp_flow_mod(match=of.ofp_match(dl_src=EthAddr("74:8e:f8:fc:6a:00"),
+                                                                dl_type=pkt.ethernet.ARP_TYPE),
                                              priority=900,
                                              action=[of.ofp_action_vlan_vid(vlan_vid=350),
                                                      of.ofp_action_output(port=1)]))
@@ -39,10 +43,9 @@ class DMZFlows(object):
                                              action=[of.ofp_action_vlan_vid(vlan_vid=350),
                                                      of.ofp_action_output(port=1)]))
 
-        #DTN2 MAC Inbound
-        #Oct 31 12:47:50:D:ERROR: Ctrl. Transaction id:  8
-        # Status: FLOW_MOD ERROR: Reason: Flow record construction failed!
+        #DTN2 MAC Inbound IP
         self.connection.send(of.ofp_flow_mod(match=of.ofp_match(in_port=1,
+                                                                dl_type=pkt.ethernet.IP_TYPE,
                                                                 dl_dst=EthAddr("00:02:c9:1f:d4:60")),
                                              priority=900,
                                              action=[of.ofp_action_strip_vlan(),
@@ -57,14 +60,21 @@ class DMZFlows(object):
                                                      of.ofp_action_vlan_vid(vlan_vid=1751),
                                                      of.ofp_action_output(port=1)]))
 
-        #DTN2 MAC to Gateway
-        #Oct 31 12:50:10:D:ERROR: Ctrl. Transaction id:  10
-        # Status: FLOW_MOD ERROR: Reason: Flow record construction failed!
+        #DTN2 MAC to Gateway IP
         self.connection.send(of.ofp_flow_mod(match=of.ofp_match(in_port=3,
+                                                                dl_type=pkt.ethernet.IP_TYPE,
                                                                 dl_src=EthAddr("00:02:c9:1f:d4:60")),
                                              priority=700,
                                              action=[of.ofp_action_vlan_vid(vlan_vid=350),
                                                      of.ofp_action_output(port=1)]))
+        #DTN2 MAC to Gateway ARP
+        self.connection.send(of.ofp_flow_mod(match=of.ofp_match(in_port=3,
+                                                                dl_type=pkt.ethernet.ARP_TYPE,
+                                                                dl_src=EthAddr("00:02:c9:1f:d4:60")),
+                                             priority=700,
+                                             action=[of.ofp_action_vlan_vid(vlan_vid=350),
+                                                     of.ofp_action_output(port=1)]))
+
 
 
 
