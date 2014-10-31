@@ -45,14 +45,23 @@ class DMZFlows(object):
                                              action=[of.ofp_action_vlan_vid(vlan_vid=350),
                                                      of.ofp_action_output(port=1)]))
 
-        #DTN2 MAC Inbound IP
+        #DTN2 MAC Inbound IP by MAC
         self.connection.send(of.ofp_flow_mod(match=of.ofp_match(in_port=1,
                                                                 dl_type=pkt.ethernet.IP_TYPE,
                                                                 dl_dst=EthAddr("00:02:c9:1f:d4:60")),
                                              priority=900,
                                              action=[of.ofp_action_strip_vlan(),
                                                      of.ofp_action_output(port=3)]))
+        #DTN2 MAC Inbound IP by IP
+        self.connection.send(of.ofp_flow_mod(match=of.ofp_match(in_port=1,
+                                                                dl_type=pkt.ethernet.IP_TYPE,
+                                                                nw_dst="128.206.117.1/32"),
+                                             priority=900,
+                                             action=[of.ofp_action_strip_vlan(),
+                                                     of.ofp_action_output(port=3)]))
         #DTN2 MAC Inbound ARP
+        #Oct 31 12:59:10:D:ERROR: Ctrl. Transaction id:  13
+        # Status: FLOW_MOD ERROR: Reason: Flow record construction failed!
         self.connection.send(of.ofp_flow_mod(match=of.ofp_match(in_port=1,
                                                                 dl_type=pkt.ethernet.ARP_TYPE,
                                                                 dl_dst=EthAddr("00:02:c9:1f:d4:60")),
