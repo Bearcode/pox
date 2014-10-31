@@ -30,6 +30,8 @@ class DMZFlows(object):
                                              action=[of.ofp_action_vlan_vid(vlan_vid=350),
                                                      of.ofp_action_output(port=1)]))
         #Missouri Management MAC to Gateway ARP
+        #Oct 31 12:59:10:D:ERROR: Ctrl. Transaction id:  7
+        # Status: FLOW_MOD ERROR: Reason: Error: Not a valid L2 or L3 or L23 Openflow rule
         self.connection.send(of.ofp_flow_mod(match=of.ofp_match(dl_src=EthAddr("74:8e:f8:fc:6a:00"),
                                                                 dl_type=pkt.ethernet.ARP_TYPE),
                                              priority=900,
@@ -68,6 +70,8 @@ class DMZFlows(object):
                                              action=[of.ofp_action_vlan_vid(vlan_vid=350),
                                                      of.ofp_action_output(port=1)]))
         #DTN2 MAC to Gateway ARP
+        #Oct 31 12:59:10:D:ERROR: Ctrl. Transaction id:  12
+        # Status: FLOW_MOD ERROR: Reason: Flow record construction failed!
         self.connection.send(of.ofp_flow_mod(match=of.ofp_match(in_port=3,
                                                                 dl_type=pkt.ethernet.ARP_TYPE,
                                                                 dl_src=EthAddr("00:02:c9:1f:d4:60")),
