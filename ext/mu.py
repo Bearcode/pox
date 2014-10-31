@@ -52,6 +52,13 @@ class DMZFlows(object):
                                              priority=900,
                                              action=[of.ofp_action_strip_vlan(),
                                                      of.ofp_action_output(port=3)]))
+        #DTN2 MAC Inbound ARP
+        self.connection.send(of.ofp_flow_mod(match=of.ofp_match(in_port=1,
+                                                                dl_type=pkt.ethernet.ARP_TYPE,
+                                                                dl_dst=EthAddr("00:02:c9:1f:d4:60")),
+                                             priority=900,
+                                             action=[of.ofp_action_strip_vlan(),
+                                                     of.ofp_action_output(port=3)]))
 
         #DTN2 outbound to DTN1
         self.connection.send(of.ofp_flow_mod(match=of.ofp_match(in_port=3,
