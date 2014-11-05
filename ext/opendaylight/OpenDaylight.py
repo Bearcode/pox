@@ -30,6 +30,7 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 
+
 class OpenDaylight(object):
     """An object holding details to talk to the OpenDaylight REST API
 
@@ -55,16 +56,16 @@ class OpenDaylight(object):
     def __init__(self):
         """Set some mostly reasonable defaults.
         """
-        self.setup = {'hostname':'localhost',
-                      'port':'8080',
-                      'username':'admin',
-                      'password':'admin',
-                      'path':'/controller/nb/v2/',
-                      'container':'default',
-                      'http':'http://'}
+        self.setup = {'hostname': 'localhost',
+                      'port': '8080',
+                      'username': 'admin',
+                      'password': 'admin',
+                      'path': '/controller/nb/v2/',
+                      'container': 'default',
+                      'http': 'http://'}
 
         self._base_url = None
-        self.url = None 
+        self.url = None
         self.auth = None
 
     def prepare(self, app, path):
@@ -119,9 +120,9 @@ class OpenDaylight(object):
         """
 
         # stuff an HTTPBasicAuth object in here ready for use
-        self.auth = HTTPBasicAuth(self.setup['username'], 
+        self.auth = HTTPBasicAuth(self.setup['username'],
                                   self.setup['password'])
-        #print("Prepare set up auth: " + self.setup['username'] + ', ' + \
+        # print("Prepare set up auth: " + self.setup['username'] + ', ' + \
         #      self.setup['password'])
 
 
@@ -150,7 +151,7 @@ class OpenDaylightFlow(object):
             odl      - an OpenDaylight object
         """
         self.odl = odl
-        self.__app = 'flow'
+        self.__app = 'flowprogrammer'
         self.request = None
         self.flows = None
 
@@ -172,10 +173,10 @@ class OpenDaylightFlow(object):
         if node_id is None:
             self.odl.prepare(self.__app, '/')
         elif flow_name is None:
-            self.odl.prepare(self.__app, '/' + 'OF/' + node_id + '/')
+            self.odl.prepare(self.__app, '/node/' + 'OF/' + node_id + '/')
         else:
-            self.odl.prepare(self.__app, '/' + 'OF/' + node_id + '/' 
-                         + flow_name + '/')
+            self.odl.prepare(self.__app, '/node/' + 'OF/' + node_id + '/'
+                             + flow_name + '/')
 
         self.request = requests.get(url=self.odl.url, auth=self.odl.auth)
 
@@ -184,9 +185,9 @@ class OpenDaylightFlow(object):
             if 'flowConfig' in self.flows:
                 self.flows = self.flows.get('flowConfig')
         else:
-            raise OpenDaylightError({'url':self.odl.url, 
-                                     'http_code':self.request.status_code,
-                                     'msg':self.request.text})
+            raise OpenDaylightError({'url': self.odl.url,
+                                     'http_code': self.request.status_code,
+                                     'msg': self.request.text})
 
 
     def add(self, flow):
@@ -196,20 +197,20 @@ class OpenDaylightFlow(object):
         """
         if hasattr(self, 'request'):
             del self.request
-        #print(flow)
-        self.odl.prepare(self.__app, '/' + flow['node']['@type'] + '/' + 
-                     flow['node']['@id'] + '/' + flow['name'] + '/')
+        # print(flow)
+        self.odl.prepare(self.__app, '/node/' + flow['node']['type'] + '/' +
+                         flow['node']['id'] + '/staticFlow/' + flow['name'])
         headers = {'Content-type': 'application/json'}
         body = json.dumps(flow)
-        self.request = requests.post(url=self.odl.url, auth=self.odl.auth,
-                                     data=body, headers=headers)
+        self.request = requests.put(url=self.odl.url, auth=self.odl.auth,
+                                    data=body, headers=headers)
 
         if self.request.status_code != 201:
-            raise OpenDaylightError({'url':self.odl.url, 
-                                     'http_code':self.request.status_code,
-                                     'msg':self.request.text})
+            raise OpenDaylightError({'url': self.odl.url,
+                                     'http_code': self.request.status_code,
+                                     'msg': self.request.text})
 
-    #def update(self):
+    # def update(self):
     #    """Update a flow to a Node on the Controller
     #    """
     #    raise NotImplementedError("update()")
@@ -224,23 +225,23 @@ class OpenDaylightFlow(object):
         if hasattr(self, 'request'):
             del self.request
 
-        self.odl.prepare(self.__app, '/' + 'OF/' + node_id + '/' + 
+        self.odl.prepare(self.__app, '/node/' + 'OF/' + node_id + '/staticFlow/' +
                          flow_name + '/')
         self.request = requests.delete(url=self.odl.url, auth=self.odl.auth)
 
         # note, if you wanted to pass in a flowConfig style dictionary, 
         # this is how you would do it.  This is what I did initially, but 
         # it seemed clunky to pass in an entire flow.
-        #self.prepare(self.__app, '/' + flow['node']['@type'] + '/' + 
-        #             flow['node']['@id'] + '/' + flow['name'] + '/')
+        #self.prepare(self.__app, '/' + flow['node']['type'] + '/' + 
+        #             flow['node']['id'] + '/' + flow['name'] + '/')
 
         if self.request.status_code != 200:
-            raise OpenDaylightError({'url':self.odl.url, 
-                                     'http_code':self.request.status_code,
-                                     'msg':self.request.text})
+            raise OpenDaylightError({'url': self.odl.url,
+                                     'http_code': self.request.status_code,
+                                     'msg': self.request.text})
 
 
-#pylint: disable=R0921
+# pylint: disable=R0921
 class OpenDaylightNode(object):
     """A way to talk to the OpenDaylight Switch Manager REST API
 
@@ -295,9 +296,9 @@ class OpenDaylightNode(object):
             if 'nodeProperties' in self.nodes:
                 self.nodes = self.nodes.get('nodeProperties')
         else:
-            raise OpenDaylightError({'url':self.odl.url, 
-                                     'http_code':self.request.status_code,
-                                     'msg':self.request.text})
+            raise OpenDaylightError({'url': self.odl.url,
+                                     'http_code': self.request.status_code,
+                                     'msg': self.request.text})
 
     def get_node_connectors(self, node_id):
         """Get information about NodeConnectors on the Controller and stuffs the
@@ -318,11 +319,11 @@ class OpenDaylightNode(object):
             self.node_connectors = self.request.json()
             if 'nodeConnectorProperties' in self.node_connectors:
                 self.node_connectors = self.node_connectors.get(
-                                        'nodeConnectorProperties')
+                    'nodeConnectorProperties')
         else:
-            raise OpenDaylightError({'url':self.odl.url, 
-                                     'http_code':self.request.status_code,
-                                     'msg':self.request.text})
+            raise OpenDaylightError({'url': self.odl.url,
+                                     'http_code': self.request.status_code,
+                                     'msg': self.request.text})
 
     def save(self):
         """Save current switch configurations
@@ -338,9 +339,9 @@ class OpenDaylightNode(object):
         self.odl.prepare(self.__app, '/switch-config/')
         self.request = requests.post(url=self.odl.url, auth=self.odl.auth)
         if self.request.status_code != 200:
-            raise OpenDaylightError({'url':self.odl.url, 
-                                     'http_code':self.request.status_code,
-                                     'msg':self.request.text})
+            raise OpenDaylightError({'url': self.odl.url,
+                                     'http_code': self.request.status_code,
+                                     'msg': self.request.text})
 
     def delete_node_property(self):
         """Delete a property of a Node on the Controller
