@@ -94,14 +94,15 @@ def flow_adapter(flow_dict):
 
 
 def mod_flow(flow_mod, remove=False):
-    log.debug('Installing %s flow' % flow_mod['name'])
     try:
         for connection in core.openflow.connections:
             if dpid_to_str(connection.dpid) == flow_mod['json']['node']['id']:
                 if not remove:
+                    log.debug('Installing %s flow' % flow_mod['name'])
                     connection.send(of.ofp_flow_mod(match=flow_mod['object']['match'], priority=flow_mod['object']['priority'],
                                                     action=flow_mod['object']['actions']))
                 else:
+                    log.debug("Removing %s flow" % flow_mod['name'])
                     connection.send(of.ofp_flow_mod(match=flow_mod['object']['match'], priority=flow_mod['object']['priority'],
                                                     action=flow_mod['object']['actions'], command=of.OFPFC_DELETE))
             else:
@@ -148,7 +149,6 @@ def remove_flow_named(name):
         del installed_flows[:]
     else:
         named_flow = (item for item in saved_flows if item["name"] == name).next()
-        log.debug("Removing %s flow" % named_flow['name'])
         mod_flow(named_flow, remove=True)
         installed_flows[:] = [d for d in installed_flows if d.get('name') != name]
     return get_installed_flows()
