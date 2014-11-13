@@ -128,7 +128,7 @@ def get_installed_flows():
 
 
 @app.route('/dmz/api/v1.0/installed/flows/remove/all', methods=['get'])
-def remove_flow():
+def remove_flow_all():
     msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
     list_of_str = []
     for connection in core.openflow.connections: # _connections.values() before betta
@@ -136,7 +136,18 @@ def remove_flow():
         s = "Clearing all flows from %s." % (dpid_to_str(connection.dpid),)
         log.debug(s)
         list_of_str.append(s)
+    del installed_flows[:]
     return jsonify({'dpids': list_of_str})
+
+
+@app.route('/dmz/api/v1.0/installed/flows/add/all', methods=['get'])
+def add_flow_all():
+    for var in dir(settings):
+            if var.startswith("osu"):
+                flow = flow_adapter(settings.__dict__[var])
+                mod_flow(core.openflow.connections[0], flow['object'])
+                installed_flows.append(flow)
+    return get_installed_flows()
 
 
 class DMZFlows(object):
