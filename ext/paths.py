@@ -114,7 +114,7 @@ def get_saved_flows():
 
 @app.route('/dmz/api/v1.0/installed/flows', methods=['GET'])
 def get_installed_flows():
-    return jsonify({'flows': installed_flows})
+    return jsonify({'flows': str(installed_flows)})
 
 
 class DMZFlows(object):
