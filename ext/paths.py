@@ -142,16 +142,13 @@ def remove_flow_named(name):
     name = str(name)
     if name == 'all':
         msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
-        list_of_str = []
         for connection in core.openflow.connections: # _connections.values() before betta
             connection.send(msg)
-            s = "Clearing all flows from %s." % (dpid_to_str(connection.dpid),)
-            log.debug(s)
-            list_of_str.append(s)
+            log.debug("Clearing all flows from %s." % (dpid_to_str(connection.dpid),))
         del installed_flows[:]
-        return jsonify({'dpids': list_of_str})
     else:
         named_flow = (item for item in saved_flows if item["name"] == name).next()
+        log.debug("Removing %s flow" % named_flow['name'])
         mod_flow(named_flow, remove=True)
         installed_flows[:] = [d for d in installed_flows if d.get('name') != name]
     return get_installed_flows()
