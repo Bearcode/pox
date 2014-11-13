@@ -109,9 +109,9 @@ def mod_flow(flow_mod, remove=False):
 
     except Exception as e:
         print e
-        print "match: %s" % flow_mod['match']
-        print "priority: %s" % flow_mod['priority']
-        print "actions: %s" % flow_mod['actions']
+        print "match: %s" % flow_mod['object']['match']
+        print "priority: %s" % flow_mod['object']['priority']
+        print "actions: %s" % flow_mod['object']['actions']
 
 
 @app.route('/dmz/api/v1.0/saved/flows', methods=['GET'])
@@ -141,7 +141,7 @@ def remove_flow_named(name):
         return jsonify({'dpids': list_of_str})
     else:
         named_flow = (item for item in saved_flows if item["name"] == name).next()
-        mod_flow(named_flow['object'], remove=True)
+        mod_flow(named_flow, remove=True)
         installed_flows[:] = [d for d in installed_flows if d.get('name') != name]
 
 
@@ -153,7 +153,7 @@ def add_flow_named(name):
             installed_flows.append(flow)
         else:
             named_flow = (item for item in saved_flows if item["name"] == name).next()
-            mod_flow(named_flow['object'])
+            mod_flow(named_flow)
             installed_flows.append(named_flow)
     return get_installed_flows()
 
