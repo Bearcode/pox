@@ -146,7 +146,7 @@ def add_flow_all():
             if var.startswith("osu"):
                 flow = flow_adapter(settings.__dict__[var])
                 for connection in core.openflow.connections:
-                    if dpid_to_str(connection.dpid) is flow['json']['node']['id']:
+                    if dpid_to_str(connection.dpid) == flow['json']['node']['id']:
                         mod_flow(connection, flow['object'])
                     else:
                         log.debug('connection: %s\nnode: %s' % (dpid_to_str(connection.dpid),
