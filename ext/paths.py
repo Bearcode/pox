@@ -11,7 +11,7 @@ from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpid_to_str
 from pox.lib.addresses import EthAddr
-from pox.openflow.of_json import dict_to_flow_mod
+from pox.openflow.of_json import match_to_dict, action_to_dict
 import settings
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
@@ -114,7 +114,7 @@ def get_saved_flows():
 
 @app.route('/dmz/api/v1.0/installed/flows', methods=['GET'])
 def get_installed_flows():
-    return jsonify({'flows': str(installed_flows)})
+    return jsonify({'flows': installed_flows})
 
 
 class DMZFlows(object):
@@ -131,6 +131,8 @@ class DMZFlows(object):
             if var.startswith("osu"):
                 flow = flow_adapter(settings.__dict__[var])
                 mod_flow(self.connection, flow)
+                flow['match'] = match_to_dict(flow['match'])
+                flow['actions'] = action_to_dict(flow['actions'])
                 installed_flows.append(flow)
 
 
