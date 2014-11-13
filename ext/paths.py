@@ -168,7 +168,9 @@ class DMZFlows(object):
         connection.addListeners(self)
 
         #Static flows
+        log.debug("saved: %s" % saved_flows)
         for flow in saved_flows:
+            log.debug("static flow: %s" % flow)
             mod_flow(flow)
             installed_flows.append(flow)
 
