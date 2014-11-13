@@ -17,6 +17,9 @@ from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 import threading
 
+from client import OpenDaylightClient
+
+client = OpenDaylightClient()
 
 log = core.getLogger()
 packet_id = 0
@@ -151,6 +154,8 @@ def remove_flow_named(name):
         named_flow = (item for item in saved_flows if item["name"] == name).next()
         mod_flow(named_flow, remove=True)
         installed_flows[:] = [d for d in installed_flows if d.get('name') != name]
+        if name == 'MizzouIPout':
+            client.delete_flow(settings.mu_flow_6['node']['id'], settings.mu_flow_6['name'])
     return get_installed_flows()
 
 
@@ -165,6 +170,8 @@ def add_flow_named(name):
         named_flow = (item for item in saved_flows if item["name"] == name).next()
         mod_flow(named_flow)
         installed_flows.append(named_flow)
+        if name == 'MizzouIPout':
+            client.add_flow(settings.mu_flow_6)
     return get_installed_flows()
 
 
