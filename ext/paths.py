@@ -44,7 +44,7 @@ def flow_adapter(flow_dict):
                 elif match_map[key][0] is 'EthAddr':
                     setattr(match, key, EthAddr(flow[match_map[key][1]]))
                 else:
-                    setattr(match, key, flow[match_map[key][1]])
+                    setattr(match, key, str(flow[match_map[key][1]]))
         except Exception as e:
             print key, e
     action_map = OrderedDict([('POP_VLAN', [None, of.ofp_action_strip_vlan()]), ('SET_VLAN_ID', ['int', of.ofp_action_vlan_vid]),
@@ -124,6 +124,7 @@ class DMZSwitch(object):
         http_server = HTTPServer(WSGIContainer(app))
         http_server.listen(5000)
         IOLoop.instance().start()
+
 
 
 def launch():
