@@ -154,6 +154,7 @@ def remove_flow_named(name):
         named_flow = (item for item in saved_flows if item["name"] == name).next()
         mod_flow(named_flow, remove=True)
         installed_flows[:] = [d for d in installed_flows if d.get('name') != name]
+    return get_installed_flows()
 
 
 @app.route('/dmz/api/v1.0/installed/flows/add/<name>', methods=['get'])
