@@ -22,7 +22,6 @@ import threading
 log = core.getLogger()
 packet_id = 0
 installed_flows = []
-
 app = Flask(__name__)
 
 
@@ -32,6 +31,8 @@ def start_tornado(*args, **kwargs):
     log.debug("Starting Tornado")
     IOLoop.instance().start()
     log.debug("Tornado finished")
+
+t = threading.Thread(target=start_tornado)
 
 
 def stop_tornado():
@@ -140,8 +141,12 @@ class DMZSwitch(object):
         log.debug("Switch %s has come up.", dpid_to_str(event.dpid))
         DMZFlows(event.connection)
 
+    def _handle_ConnectionDown(self, event):
+        log.debug("DMZSwitch stopping tornado")
+        stop_tornado()
+        t.join()
+
 
 def launch():
     core.registerNew(DMZSwitch)
-    t = threading.Thread(target=start_tornado)
     t.start()
