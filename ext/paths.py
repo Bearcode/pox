@@ -115,10 +115,10 @@ class DMZSwitch(object):
     def _handle_ConnectionUp(self, event):
         log.debug("Switch %s has come up.", dpid_to_str(event.dpid))
         DMZFlows(event.connection)
+        http_server = HTTPServer(WSGIContainer(app))
+        http_server.listen(5000)
+        IOLoop.instance().start()
 
 
 def launch():
     core.registerNew(DMZSwitch)
-    http_server = HTTPServer(WSGIContainer(app))
-    http_server.listen(5000)
-    IOLoop.instance().start()
