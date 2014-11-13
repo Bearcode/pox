@@ -102,7 +102,7 @@ def mod_flow(connection, flow_mod):
         print "priority: %s" % flow_mod['priority']
         print "actions: %s" % flow_mod['actions']
 
-@app.route('/dmz/api/v1.0/flows', methods=['GET'])
+@app.route('/dmz/api/v1.0/saved/flows', methods=['GET'])
 def get_flows():
     flows = []
     for var in dir(settings):
@@ -111,6 +111,9 @@ def get_flows():
             flows.append(str(flow_adapter(settings.__dict__[var])))
     return jsonify({'flows': flows})
 
+@app.route('/dmz/api/v1.0/installed/flows', methods=['GET'])
+def get_flows():
+    return jsonify({'flows': installed_flows})
 
 class DMZFlows(object):
     def __init__(self, connection):
