@@ -13,6 +13,9 @@ from pox.lib.util import dpid_to_str
 from pox.lib.addresses import EthAddr
 from pox.openflow.of_json import dict_to_flow_mod
 import settings
+from tornado.wsgi import WSGIContainer
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop
 
 
 log = core.getLogger()
@@ -116,4 +119,6 @@ class DMZSwitch(object):
 
 def launch():
     core.registerNew(DMZSwitch)
-    app.run(debug=True)
+    http_server = HTTPServer(WSGIContainer(app))
+    http_server.listen(5000)
+    IOLoop.instance().start()
