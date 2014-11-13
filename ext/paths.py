@@ -11,7 +11,6 @@ from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpid_to_str
 from pox.lib.addresses import EthAddr
-from pox.openflow.of_json import match_to_dict, action_to_dict
 import settings
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
@@ -90,31 +89,37 @@ def flow_adapter(flow_dict):
                     actions.append(action)
     priority = int(flow['priority'])
     flow_mod = {'match': match, 'priority': priority, 'actions': actions, 'name': flow['name']}
-    return flow_mod
+    return {'name': flow['name'], 'object': flow_mod, 'json': flow}
 
 
 def mod_flow(connection, flow_mod):
     log.debug('Installing %s flow' % flow_mod['name'])
     try:
-        connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'], action=flow_mod['actions']))
+        connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'],
+                                        action=flow_mod['actions']))
     except Exception as e:
         print e
         print "match: %s" % flow_mod['match']
         print "priority: %s" % flow_mod['priority']
         print "actions: %s" % flow_mod['actions']
 
+
 @app.route('/dmz/api/v1.0/saved/flows', methods=['GET'])
 def get_saved_flows():
     flows = []
     for var in dir(settings):
         if var.startswith("osu"):
-            flows.append(settings.__dict__[var])
-            flows.append(str(flow_adapter(settings.__dict__[var])))
+            flow = flow_adapter(settings.__dict__[var])['json']
+            flows.append(flow)
     return jsonify({'flows': flows})
+
 
 @app.route('/dmz/api/v1.0/installed/flows', methods=['GET'])
 def get_installed_flows():
-    return jsonify({'flows': installed_flows})
+    flows = []
+    for flow in installed_flows:
+        flows.append(flow['json'])
+    return jsonify({'flows': flows})
 
 
 class DMZFlows(object):
@@ -130,9 +135,7 @@ class DMZFlows(object):
         for var in dir(settings):
             if var.startswith("osu"):
                 flow = flow_adapter(settings.__dict__[var])
-                mod_flow(self.connection, flow)
-                flow['match'] = match_to_dict(flow['match'])
-                flow['actions'] = action_to_dict(flow['actions'])
+                mod_flow(self.connection, flow['object'])
                 installed_flows.append(flow)
 
 
