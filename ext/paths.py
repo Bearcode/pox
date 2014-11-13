@@ -161,10 +161,10 @@ def add_flow_named(name):
         for flow in saved_flows:
             mod_flow(flow)
             installed_flows.append(flow)
-        else:
-            named_flow = (item for item in saved_flows if item["name"] == name).next()
-            mod_flow(named_flow)
-            installed_flows.append(named_flow)
+    else:
+        named_flow = (item for item in saved_flows if item["name"] == name).next()
+        mod_flow(named_flow)
+        installed_flows.append(named_flow)
     return get_installed_flows()
 
 
