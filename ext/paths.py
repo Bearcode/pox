@@ -11,11 +11,13 @@ from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from pox.lib.util import dpid_to_str
 from pox.lib.addresses import EthAddr
+from pox.openflow.of_json import dict_to_flow_mod
 import settings
 
 
 log = core.getLogger()
 packet_id = 0
+installed_flows = []
 
 app = Flask(__name__)
 
@@ -67,8 +69,13 @@ def flow_adapter(flow_dict):
                     data = int(matching[0].split('=')[1])
                     action = action_map[key][1](port=data)
                     actions.append(action)
+    priority = int(flow['priority'])
+    flow_mod = {'match': match, 'priority': priority, 'actions': actions, 'name': flow['name']}
+    return flow_mod
 
-    return actions
+
+def mod_flow(connection, flow_mod):
+    connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'], action=flow_mod['actions']))
 
 
 @app.route('/dmz/api/v1.0/flows', methods=['GET'])
@@ -93,7 +100,9 @@ class DMZFlows(object):
         #Static flows
         for var in dir(settings):
             if var.startswith("osu"):
-                print settings.__dict__[var]
+                flow = flow_adapter(settings.__dict__[var])
+                mod_flow(self.connection, flow)
+                installed_flows.append(flow)
 
 
 class DMZSwitch(object):
