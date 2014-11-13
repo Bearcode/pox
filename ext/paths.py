@@ -92,11 +92,16 @@ def flow_adapter(flow_dict):
     return {'name': flow['name'], 'object': flow_mod, 'json': flow}
 
 
-def mod_flow(connection, flow_mod):
+def mod_flow(connection, flow_mod, remove=False):
     log.debug('Installing %s flow' % flow_mod['name'])
     try:
-        connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'],
-                                        action=flow_mod['actions']))
+        if not remove:
+            connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'],
+                                            action=flow_mod['actions']))
+        else:
+            connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'],
+                                            action=flow_mod['actions'], command=of.OFPFC_DELETE))
+
     except Exception as e:
         print e
         print "match: %s" % flow_mod['match']
@@ -120,6 +125,18 @@ def get_installed_flows():
     for flow in installed_flows:
         flows.append(flow['json'])
     return jsonify({'flows': flows})
+
+
+@app.route('/dmz/api/v1.0/installed/flows/remove/all', methods=['get'])
+def remove_flow():
+    msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+    list_of_str = []
+    for connection in core.openflow.connections: # _connections.values() before betta
+        connection.send(msg)
+        s = "Clearing all flows from %s." % (dpid_to_str(connection.dpid),)
+        log.debug(s)
+        list_of_str.append(s)
+    return jsonify({'dpids': list_of_str})
 
 
 class DMZFlows(object):
