@@ -114,9 +114,19 @@ def mod_flow(flow_mod, remove=False):
         print "actions: %s" % flow_mod['object']['actions']
 
 
-@app.route('/dmz/api/v1.0/saved/flows', methods=['GET'])
-def get_saved_flows():
-    return jsonify({'flows': saved_flows})
+@app.route('/dmz/api/v1.0/saved/flows/<name>', methods=['GET'])
+def get_saved_flows(name):
+    name = str(name)
+    flows = []
+    if name == 'all':
+
+        for flow in saved_flows:
+            flows.append(flow['json'])
+    else:
+        named_flow = (item for item in saved_flows if item["name"] == name).next()
+        flows.append(named_flow['json'])
+    return jsonify({'flows': flows})
+
 
 
 @app.route('/dmz/api/v1.0/installed/flows', methods=['GET'])
@@ -129,6 +139,7 @@ def get_installed_flows():
 
 @app.route('/dmz/api/v1.0/installed/flows/remove/<name>', methods=['get'])
 def remove_flow_named(name):
+    name = str(name)
     if name == 'all':
         msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
         list_of_str = []
@@ -147,6 +158,7 @@ def remove_flow_named(name):
 
 @app.route('/dmz/api/v1.0/installed/flows/add/<name>', methods=['get'])
 def add_flow_named(name):
+    name = str(name)
     if name == 'all':
         for flow in saved_flows:
             mod_flow(flow)
