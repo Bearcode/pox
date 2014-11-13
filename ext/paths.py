@@ -99,11 +99,11 @@ def mod_flow(flow_mod, remove=False):
         for connection in core.openflow.connections:
             if dpid_to_str(connection.dpid) == flow_mod['json']['node']['id']:
                 if not remove:
-                    connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'],
-                                                    action=flow_mod['actions']))
+                    connection.send(of.ofp_flow_mod(match=flow_mod['object']['match'], priority=flow_mod['object']['priority'],
+                                                    action=flow_mod['object']['actions']))
                 else:
-                    connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'],
-                                                    action=flow_mod['actions'], command=of.OFPFC_DELETE))
+                    connection.send(of.ofp_flow_mod(match=flow_mod['object']['match'], priority=flow_mod['object']['priority'],
+                                                    action=flow_mod['object']['actions'], command=of.OFPFC_DELETE))
             else:
                 log.debug('connection: %s node: %s' % (dpid_to_str(connection.dpid), flow_mod['json']['node']['id']))
 
@@ -149,7 +149,7 @@ def remove_flow_named(name):
 def add_flow_named(name):
     if name == 'all':
         for flow in saved_flows:
-            mod_flow(flow['object'])
+            mod_flow(flow)
             installed_flows.append(flow)
         else:
             named_flow = (item for item in saved_flows if item["name"] == name).next()
@@ -169,7 +169,7 @@ class DMZFlows(object):
 
         #Static flows
         for flow in saved_flows:
-            mod_flow(flow['object'])
+            mod_flow(flow)
             installed_flows.append(flow)
 
 
