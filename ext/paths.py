@@ -3,7 +3,7 @@ This module contains some flows for The Ohio State University DMZ
 """
 
 import json
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 from flask import Flask, jsonify
 
@@ -42,8 +42,33 @@ def flow_adapter(flow_dict):
                     setattr(match, key, flow[match_map[key][1]])
         except Exception as e:
             print key, e
+    action_map = OrderedDict([('POP_VLAN', [None, of.ofp_action_strip_vlan()]), ('SET_VLAN_ID', ['int', of.ofp_action_vlan_vid]),
+                              ('SET_DL_DST', ['EthAddr', of.ofp_action_dl_addr]), ('CONTROLLER', [None, of.ofp_action_output]),
+                              ('OUTPUT', ['int', of.ofp_action_output])])
+    actions = []
+    if flow['actions']:
+        for key in action_map.keys():
+            matching = [s for s in flow['actions'] if key in s]
+            if matching:
+                if key is 'POP_VLAN':
+                    actions.append(action_map[key][1])
+                elif key is 'SET_DL_DST':
+                    data = matching[0].split('=')[1]
+                    action = action_map[key][1].set_dst(EthAddr(data))
+                    actions.append(action)
+                elif key is 'SET_VLAN_ID':
+                    data = int(matching[0].split('=')[1])
+                    action = action_map[key][1](vlan_vid=data)
+                    actions.append(action)
+                elif key is 'CONTROLLER':
+                    action = action_map[key][1](port=of.OFPP_CONTROLLER)
+                    actions.append(action)
+                elif key is 'OUTPUT':
+                    data = int(matching[0].split('=')[1])
+                    action = action_map[key][1](port=data)
+                    actions.append(action)
 
-    return match
+    return actions
 
 
 @app.route('/dmz/api/v1.0/flows', methods=['GET'])
@@ -80,7 +105,6 @@ class DMZSwitch(object):
         DMZFlows(event.connection)
 
 
-def launch(verbose=False, max_length=110, full_packets=True,
-           hide=False, show=False):
+def launch():
     core.registerNew(DMZSwitch)
     app.run(debug=True)
