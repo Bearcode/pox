@@ -104,7 +104,7 @@ def mod_flow(connection, flow_mod):
         print "actions: %s" % flow_mod['actions']
 
 @app.route('/dmz/api/v1.0/saved/flows', methods=['GET'])
-def get_flows():
+def get_saved_flows():
     flows = []
     for var in dir(settings):
         if var.startswith("osu"):
@@ -113,8 +113,9 @@ def get_flows():
     return jsonify({'flows': flows})
 
 @app.route('/dmz/api/v1.0/installed/flows', methods=['GET'])
-def get_flows():
+def get_installed_flows():
     return jsonify({'flows': installed_flows})
+
 
 class DMZFlows(object):
     def __init__(self, connection):
