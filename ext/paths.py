@@ -21,6 +21,7 @@ import threading
 log = core.getLogger()
 packet_id = 0
 installed_flows = []
+saved_flows = []
 app = Flask(__name__)
 
 
@@ -92,15 +93,19 @@ def flow_adapter(flow_dict):
     return {'name': flow['name'], 'object': flow_mod, 'json': flow}
 
 
-def mod_flow(connection, flow_mod, remove=False):
+def mod_flow(flow_mod, remove=False):
     log.debug('Installing %s flow' % flow_mod['name'])
     try:
-        if not remove:
-            connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'],
-                                            action=flow_mod['actions']))
-        else:
-            connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'],
-                                            action=flow_mod['actions'], command=of.OFPFC_DELETE))
+        for connection in core.openflow.connections:
+            if dpid_to_str(connection.dpid) == flow_mod['json']['node']['id']:
+                if not remove:
+                    connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'],
+                                                    action=flow_mod['actions']))
+                else:
+                    connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'],
+                                                    action=flow_mod['actions'], command=of.OFPFC_DELETE))
+            else:
+                log.debug('connection: %s node: %s' % (dpid_to_str(connection.dpid), flow_mod['json']['node']['id']))
 
     except Exception as e:
         print e
@@ -111,12 +116,7 @@ def mod_flow(connection, flow_mod, remove=False):
 
 @app.route('/dmz/api/v1.0/saved/flows', methods=['GET'])
 def get_saved_flows():
-    flows = []
-    for var in dir(settings):
-        if var.startswith("osu"):
-            flow = flow_adapter(settings.__dict__[var])['json']
-            flows.append(flow)
-    return jsonify({'flows': flows})
+    return jsonify({'flows': saved_flows})
 
 
 @app.route('/dmz/api/v1.0/installed/flows', methods=['GET'])
@@ -127,31 +127,34 @@ def get_installed_flows():
     return jsonify({'flows': flows})
 
 
-@app.route('/dmz/api/v1.0/installed/flows/remove/all', methods=['get'])
-def remove_flow_all():
-    msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
-    list_of_str = []
-    for connection in core.openflow.connections: # _connections.values() before betta
-        connection.send(msg)
-        s = "Clearing all flows from %s." % (dpid_to_str(connection.dpid),)
-        log.debug(s)
-        list_of_str.append(s)
-    del installed_flows[:]
-    return jsonify({'dpids': list_of_str})
+@app.route('/dmz/api/v1.0/installed/flows/remove/<name>', methods=['get'])
+def remove_flow_named(name):
+    if name == 'all':
+        msg = of.ofp_flow_mod(command=of.OFPFC_DELETE)
+        list_of_str = []
+        for connection in core.openflow.connections: # _connections.values() before betta
+            connection.send(msg)
+            s = "Clearing all flows from %s." % (dpid_to_str(connection.dpid),)
+            log.debug(s)
+            list_of_str.append(s)
+        del installed_flows[:]
+        return jsonify({'dpids': list_of_str})
+    else:
+        named_flow = (item for item in saved_flows if item["name"] == name).next()
+        mod_flow(named_flow['object'], remove=True)
+        installed_flows[:] = [d for d in installed_flows if d.get('name') != name]
 
 
-@app.route('/dmz/api/v1.0/installed/flows/add/all', methods=['get'])
-def add_flow_all():
-    for var in dir(settings):
-            if var.startswith("osu"):
-                flow = flow_adapter(settings.__dict__[var])
-                for connection in core.openflow.connections:
-                    if dpid_to_str(connection.dpid) == flow['json']['node']['id']:
-                        mod_flow(connection, flow['object'])
-                    else:
-                        log.debug('connection: %s\nnode: %s' % (dpid_to_str(connection.dpid),
-                                                                flow['json']['node']['id']))
-                installed_flows.append(flow)
+@app.route('/dmz/api/v1.0/installed/flows/add/<name>', methods=['get'])
+def add_flow_named(name):
+    if name == 'all':
+        for flow in saved_flows:
+            mod_flow(flow['object'])
+            installed_flows.append(flow)
+        else:
+            named_flow = (item for item in saved_flows if item["name"] == name).next()
+            mod_flow(named_flow['object'])
+            installed_flows.append(named_flow)
     return get_installed_flows()
 
 
@@ -165,11 +168,9 @@ class DMZFlows(object):
         connection.addListeners(self)
 
         #Static flows
-        for var in dir(settings):
-            if var.startswith("osu"):
-                flow = flow_adapter(settings.__dict__[var])
-                mod_flow(self.connection, flow['object'])
-                installed_flows.append(flow)
+        for flow in saved_flows:
+            mod_flow(self.connection, flow['object'])
+            installed_flows.append(flow)
 
 
 class DMZSwitch(object):
@@ -188,4 +189,8 @@ class DMZSwitch(object):
 
 def launch():
     core.registerNew(DMZSwitch)
+    for var in dir(settings):
+        if var.startswith("osu"):
+            flow = flow_adapter(settings.__dict__[var])['json']
+            saved_flows.append(flow)
     t.start()
