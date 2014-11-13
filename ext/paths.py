@@ -78,6 +78,7 @@ def flow_adapter(flow_dict):
 
 
 def mod_flow(connection, flow_mod):
+    log.debug('Installing %s flow' % flow_mod['name'])
     connection.send(of.ofp_flow_mod(match=flow_mod['match'], priority=flow_mod['priority'], action=flow_mod['actions']))
 
 
