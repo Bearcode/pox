@@ -16,6 +16,7 @@ import settings
 from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
+import threading
 
 
 log = core.getLogger()
@@ -23,6 +24,20 @@ packet_id = 0
 installed_flows = []
 
 app = Flask(__name__)
+
+
+def start_tornado(*args, **kwargs):
+    http_server = HTTPServer(WSGIContainer(app))
+    http_server.listen(5000, address="0.0.0.0")
+    log.debug("Starting Tornado")
+    IOLoop.instance().start()
+    log.debug("Tornado finished")
+
+
+def stop_tornado():
+    ioloop = IOLoop.instance()
+    ioloop.add_callback(lambda x: x.stop(), ioloop)
+    log.debug("Asked Tornado to exit")
 
 
 def flow_adapter(flow_dict):
@@ -121,11 +136,9 @@ class DMZSwitch(object):
     def _handle_ConnectionUp(self, event):
         log.debug("Switch %s has come up.", dpid_to_str(event.dpid))
         DMZFlows(event.connection)
-        http_server = HTTPServer(WSGIContainer(app))
-        http_server.listen(5000, address="0.0.0.0")
-        IOLoop.instance().start()
-
 
 
 def launch():
     core.registerNew(DMZSwitch)
+    t = threading.Thread(target=start_tornado)
+    t.start()
