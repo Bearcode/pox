@@ -188,9 +188,9 @@ class DMZSwitch(object):
 
 
 def launch():
-    core.registerNew(DMZSwitch)
     for var in dir(settings):
         if var.startswith("osu"):
             flow = flow_adapter(settings.__dict__[var])['json']
             saved_flows.append(flow)
     t.start()
+    core.registerNew(DMZSwitch)
