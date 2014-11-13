@@ -169,7 +169,7 @@ class DMZFlows(object):
 
         #Static flows
         for flow in saved_flows:
-            mod_flow(self.connection, flow['object'])
+            mod_flow(flow['object'])
             installed_flows.append(flow)
 
 
