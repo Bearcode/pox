@@ -16,6 +16,7 @@ from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 import threading
+import os
 
 from client import OpenDaylightClient
 
@@ -29,7 +30,11 @@ app = Flask(__name__)
 
 
 def start_tornado(*args, **kwargs):
-    http_server = HTTPServer(WSGIContainer(app))
+    if settings.ssl:
+        ssl_options = {"certfile": os.path.join(".ssl", "server.crt"), "keyfile": os.path.join(".ssl", "server.key")}
+    else:
+        ssl_options = None
+    http_server = HTTPServer(WSGIContainer(app), ssl_options=ssl_options)
     http_server.listen(5000, address="0.0.0.0")
     log.debug("Starting Tornado")
     IOLoop.instance().start()
