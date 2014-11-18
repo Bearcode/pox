@@ -160,7 +160,10 @@ def remove_flow_named(name):
         mod_flow(named_flow, remove=True)
         installed_flows[:] = [d for d in installed_flows if d.get('name') != name]
         if name == 'MizzouIPout':
-            client.delete_flow(settings.mu_flow_6['node']['id'], settings.mu_flow_6['name'])
+            try:
+                client.delete_flow(settings.mu_flow_6['node']['id'], settings.mu_flow_6['name'])
+            except Exception as e:
+                log.debug("ODL Remove Error: %s" % e)
     return get_installed_flows()
 
 
@@ -176,7 +179,10 @@ def add_flow_named(name):
         mod_flow(named_flow)
         installed_flows.append(named_flow)
         if name == 'MizzouIPout':
-            client.add_flow(settings.mu_flow_6)
+            try:
+                client.add_flow(settings.mu_flow_6)
+            except Exception as e:
+                log.debug("ODL Add Error: %s" % e)
     return get_installed_flows()
 
 
