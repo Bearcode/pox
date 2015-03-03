@@ -146,8 +146,11 @@ def get_installed_flows(name=None):
         flows.append(flow['json'])
     if name:
         name = str(name)
-        named_flow = (item for item in flows if item["name"] == name).next()
-        return jsonify(named_flow)
+        try:
+            named_flow = (item for item in flows if item["name"] == name).next()
+            return jsonify(named_flow)
+        except Exception as e:
+            return '', 204
     else:
         return jsonify({'flows': flows})
 
