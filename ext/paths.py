@@ -140,7 +140,7 @@ def get_saved_flows(name):
 
 @app.route('/dmz/api/v1.0/installed/flows', methods=['GET'], defaults={'name': None})
 @app.route('/dmz/api/v1.0/installed/flows/<name>', methods=['GET'])
-def get_installed_flows(name):
+def get_installed_flows(name=None):
     flows = []
     for flow in installed_flows:
         flows.append(flow['json'])
