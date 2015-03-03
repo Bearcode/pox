@@ -16,6 +16,7 @@ from tornado.wsgi import WSGIContainer
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 import threading
+import os
 
 from client import OpenDaylightClient
 
@@ -29,7 +30,11 @@ app = Flask(__name__)
 
 
 def start_tornado(*args, **kwargs):
-    http_server = HTTPServer(WSGIContainer(app))
+    if settings.ssl:
+        ssl_options = {"certfile": os.path.join(".ssl", "server.crt"), "keyfile": os.path.join(".ssl", "server.key")}
+    else:
+        ssl_options = None
+    http_server = HTTPServer(WSGIContainer(app), ssl_options=ssl_options)
     http_server.listen(5000, address="0.0.0.0")
     log.debug("Starting Tornado")
     IOLoop.instance().start()
@@ -162,7 +167,10 @@ def remove_flow_named(name):
         mod_flow(named_flow, remove=True)
         installed_flows[:] = [d for d in installed_flows if d.get('name') != name]
         if name == 'MizzouIPout':
-            client.delete_flow(settings.mu_flow_6['node']['id'], settings.mu_flow_6['name'])
+            try:
+                client.delete_flow(settings.mu_flow_6['node']['id'], settings.mu_flow_6['name'])
+            except Exception as e:
+                log.debug("ODL Remove Error: %s" % e)
     return get_installed_flows()
 
 
@@ -178,7 +186,10 @@ def add_flow_named(name):
         mod_flow(named_flow)
         installed_flows.append(named_flow)
         if name == 'MizzouIPout':
-            client.add_flow(settings.mu_flow_6)
+            try:
+                client.add_flow(settings.mu_flow_6)
+            except Exception as e:
+                log.debug("ODL Add Error: %s" % e)
     return get_installed_flows()
 
 
