@@ -133,12 +133,19 @@ def get_saved_flows(name):
 
 
 
-@app.route('/dmz/api/v1.0/installed/flows', methods=['GET'])
-def get_installed_flows():
+@app.route('/dmz/api/v1.0/installed/flows', methods=['GET'], defaults={'name': None})
+@app.route('/dmz/api/v1.0/installed/flows/<name>', methods=['GET'])
+def get_installed_flows(name):
     flows = []
     for flow in installed_flows:
         flows.append(flow['json'])
-    return jsonify({'flows': flows})
+    if name:
+        name = str(name)
+        named_flow = (item for item in flows if item["name"] == name).next()
+        return jsonify(named_flow)
+    else:
+        return jsonify({'flows': flows})
+
 
 
 @app.route('/dmz/api/v1.0/installed/flows/remove/<name>', methods=['get'])

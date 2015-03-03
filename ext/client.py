@@ -45,7 +45,3 @@ class OpenDaylightClient(object):
 if __name__ == '__main__':
     client = OpenDaylightClient()
     client.get_all_flows()
-    client.delete_flow(settings.mu_flow_6['node']['id'], settings.mu_flow_6['name'])
-    client.get_all_flows()
-    client.add_flow(settings.mu_flow_6)
-    client.get_all_flows()
